@@ -1,0 +1,293 @@
+/* --- 1. Variables & Reset --- */
+:root {
+    --primary-border: #e5e7eb;
+    /* Tailwind Gray-200 */
+    --bg-card: #f9fafb;
+    /* Tailwind Gray-50 */
+    --text-muted: #6b7280;
+    /* Tailwind Gray-500 */
+    --hover-bg: rgb(0 0 0 / 0.04);
+    --accent-blue: #2563eb;
+    --table-header-bg: rgb(249 250 251 / 0.95);
+    /* Slight transparency for blur */
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-border: #374151;
+        /* Tailwind Gray-700 */
+        --bg-card: #1f2937;
+        /* Tailwind Gray-800 */
+        --text-muted: #9ca3af;
+        /* Tailwind Gray-400 */
+        --hover-bg: rgb(255 255 255 / 0.08);
+        --table-header-bg: rgb(31 41 55 / 0.95);
+    }
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.5;
+}
+
+/* --- 2. Typography & Layout --- */
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.last-updated {
+    text-align: center;
+    font-size: 0.85em;
+    color: var(--text-muted);
+    margin: 15px 0 30px;
+    font-family: monospace;
+    /* Gives it a technical 'data' feel */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+main {
+    max-width: 1100px;
+    /* One control for the whole page width */
+    margin: 0 auto;
+    /* Centers everything */
+}
+
+/* --- 3. Table Container & Scrollbar --- */
+.table-container {
+    width: 100%;
+    /* Constrain height to force vertical scrolling */
+    max-height: 80vh;
+    /* Takes up 80% of the screen height */
+    overflow-y: auto;
+    /* Adds vertical scrollbar when needed */
+    overflow-x: auto;
+
+    min-height: 450px;
+    /* Reserve space to prevent the jump */
+    /* Center the "Loading..." text nicely in that space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* --- 4. Table Styling --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+th,
+td {
+    padding: 12px 15px;
+    /* Defined ONCE for everything */
+    white-space: nowrap;
+    /* Keeps rows neat */
+    border-bottom: 1px solid var(--primary-border);
+}
+
+/* Add a top border to the header to "cap" the table */
+thead tr {
+    border-top: 2px solid var(--primary-border);
+    /* Strong visual start */
+    border-bottom: 2px solid var(--primary-border);
+    /* Clearly separates header from data */
+}
+
+thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: var(--table-header-bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+
+/* The Flex Container inside the cell */
+.th-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    /* Fill the cell */
+}
+
+thead th:hover {
+    background-color: var(--hover-bg);
+}
+
+/* --- 5. Column Alignment & Sorting (Ragged Edge Design) --- */
+/* The Sort Arrow (Invisible by default) */
+.th-content::after {
+    content: '▲';
+    /* Default shape, hidden by opacity */
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    color: var(--accent-blue);
+}
+
+/* Active Sort States (Target the arrow inside the active TH) */
+th.sort-asc .th-content::after {
+    content: '▲';
+    opacity: 1;
+}
+
+th.sort-desc .th-content::after {
+    content: '▼';
+    opacity: 1;
+}
+
+/* Text Columns (Left Aligned, Arrow Right) */
+/* th:nth-child(-n+2) .th-content {
+    justify-content: flex-start;
+} */
+
+td:nth-child(-n+2) {
+    text-align: left;
+}
+
+/* Numeric Columns (Right Aligned, Arrow Left) */
+th:nth-child(n+3) .th-content {
+    flex-direction: row-reverse;
+    /* Puts arrow to the left of text */
+}
+
+/* Ensure the data cells match and use tabular numbers */
+td:nth-child(n+3) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- 6. Special Cells --- */
+/* Added display:flex to the container to enable justify-content logic */
+.org-cell {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.org-cell a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+    /* inherits system text color */
+}
+
+.org-cell img {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    object-fit: contain;
+    background-color: rgb(0 0 0 / 0.5);
+    padding: 2px;
+    /* Ensures the logo isn't stretched */
+    vertical-align: middle;
+}
+
+.na-cell {
+    font-style: italic;
+    opacity: 0.5;
+    /* visually deemphasize N/A */
+}
+
+/* Footer (Totals) */
+tfoot tr td {
+    font-weight: bold;
+    border-top: 2px solid var(--primary-border);
+    border-bottom: none;
+}
+
+tfoot tr td:first-child .org-cell {
+    justify-content: flex-end;
+}
+
+/* --- 7. Methodology Grid --- */
+.table-annotations {
+    margin-top: 8px;
+    text-align: right;
+    /* Align with numeric columns */
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.methodology {
+    margin-top: 50px;
+    padding: 20px 0;
+}
+
+.methodology-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.info-card {
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+@media (prefers-color-scheme: dark) {
+    .info-card {
+        border-color: #333;
+    }
+}
+
+.info-card h3 {
+    margin-top: 0;
+    font-size: 1em;
+    text-transform: uppercase;
+    /* letter-spacing: 0.05em; */
+    color: var(--text-muted);
+}
+
+.info-card p {
+    margin: 0;
+    font-size: 0.95em;
+}
+
+footer {
+    text-align: center;
+    margin-top: 80px;
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+/* --- 8. Loading State Animation --- */
+.status-message {
+    flex: 1;
+    /* Fill the table container */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+/* Utility to hide elements */
+.hidden {
+    display: none !important;
+}
+
+/* Tablet/Desktop View */
+@media (min-width: 768px) {
+    table {
+        font-size: 16px;
+    }
+}

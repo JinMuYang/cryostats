@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- Makes page responsive on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Allow browser to auto-switch between light and dark -->
+    <meta name="color-scheme" content="light dark">
+    <title>Cryostats - Global Cryonics/Biostasis Statistics</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1>Cryostats</h1>
+    <p id="table-subtitle" class="subtitle">A curated snapshot of cryonics and biostasis organisations worldwide.</p>
+    <p class="last-updated">Last Updated: <strong>—</strong></p>
+
+    <main>
+        <!-- Table wrapped in container for horizontal scroll -->
+        <div class="table-container">
+            <div id="status-message" class="status-message">Loading...</div>
+            <table id="data-table" aria-labelledby="table-subtitle" class="hidden">
+            </table>
+        </div>
+
+        <div class="table-annotations">
+            <small><b>Members:</b> Contract signed but alive. &nbsp; <b>Patients:</b> Deceased and in biostasis.</small>
+        </div>
+
+        <section class="methodology">
+            <h2>About the Data</h2>
+            <div class="methodology-grid">
+                <div class="info-card">
+                    <h3>Update</h3>
+                    <p>Updates are performed quarterly. Please note that organisations have different reporting
+                        schedules and fiscal calendars, so some data points may lag behind others.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Sources</h3>
+                    <p>Statistics are aggregated from official newsletters, annual reports, and direct public statements
+                        released by the respective organisations.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Cost?</h3>
+                    <p>Pricing structures vary significantly by region and insurance models. Click on any organisation
+                        name in the table to visit their official website for specific pricing.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; <span id="year"></span> Cryostats.org. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
