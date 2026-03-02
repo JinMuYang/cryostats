@@ -210,9 +210,17 @@ function buildTable(headers, dataRows, totalRowData) {
             }
             // Numeric Columns (Index 3 & 4)
             else if (index >= 3) {
-                // STORE RAW VALUE FOR SORTING
-                td.setAttribute('data-value', cellData);
-                td.textContent = formatNumber(cellData);
+                // cellData is now an object: { val: 123, delta: 5 }
+                td.setAttribute('data-value', cellData.val);
+
+                let deltaHtml = '';
+                if (cellData.delta !== null && cellData.delta !== undefined && cellData.delta !== 0) {
+                    const sign = cellData.delta > 0 ? '+' : ''; // Negatives already include a minus sign
+                    const deltaClass = cellData.delta > 0 ? 'pos' : 'neg';
+                    deltaHtml = `<span class="delta ${deltaClass}">${sign}${cellData.delta}</span>`;
+                }
+
+                td.innerHTML = `<div class="number-cell">${deltaHtml}<span class="val">${formatNumber(cellData.val)}</span></div>`;
             }
             // Text Columns
             else {
@@ -231,8 +239,14 @@ function buildTable(headers, dataRows, totalRowData) {
         const totalRow = document.createElement('tr');
         totalRowData.forEach((cellData, index) => {
             const td = document.createElement('td');
-            if (index === 0) {
-                td.innerHTML = `<div class="org-cell"><span>${cellData}</span></div>`;
+            if (index >= 3) {
+                let deltaHtml = '';
+                if (cellData.delta && cellData.delta !== 0) {
+                    const sign = cellData.delta > 0 ? '+' : '';
+                    const deltaClass = cellData.delta > 0 ? 'pos' : 'neg';
+                    deltaHtml = `<span class="delta ${deltaClass}">${sign}${cellData.delta}</span>`;
+                }
+                td.innerHTML = `<div class="number-cell">${deltaHtml}<span class="val">${formatNumber(cellData.val)}</span></div>`;
             } else {
                 td.textContent = cellData;
             }
@@ -269,42 +283,61 @@ async function loadData() {
             history[quarter].push(row);
         });
 
-        // Get Latest Quarter safely
+        // Get Latest and Previous Quarter safely
         const sortedQuarters = Object.keys(history).sort();
         if (sortedQuarters.length === 0) throw new Error('No quarterly data found');
 
         const latestQuarter = sortedQuarters.pop();
+        const prevQuarter = sortedQuarters.length > 0 ? sortedQuarters.pop() : null;
         const rawData = history[latestQuarter];
+
+        // Map previous data for quick lookup
+        const prevDataMap = {};
+        if (prevQuarter) {
+            history[prevQuarter].forEach(row => {
+                const [_, org, p, m] = row;
+                prevDataMap[org.toLowerCase().trim()] = { p: getNumericValue(p), m: getNumericValue(m) };
+            });
+        }
 
         let totalPatients = 0;
         let totalMembers = 0;
+        let totalPatientsPrev = 0;
+        let totalMembersPrev = 0;
         const displayRows = [];
 
         rawData.forEach(row => {
             const [_, rawOrgName, rawPatients, rawMembers] = row;
-
-            // Skip if someone manually added a 'Total' row to CSV
             if (!rawOrgName || rawOrgName.toLowerCase() === 'total') return;
 
-            // Normalize name for lookup
             const lookupKey = rawOrgName.toLowerCase().trim();
             const config = orgConfig[lookupKey] || defaultConfig;
 
             const pNum = getNumericValue(rawPatients);
             const mNum = getNumericValue(rawMembers);
+            const prevOrg = prevDataMap[lookupKey] || { p: -Infinity, m: -Infinity };
 
-            // Add to totals (only if valid positive number)
-            if (pNum > 0 && pNum !== -Infinity) totalPatients += pNum;
-            if (mNum > 0 && mNum !== -Infinity) totalMembers += mNum;
+            // Add to current and previous totals
+            if (pNum > 0 && pNum !== -Infinity) {
+                totalPatients += pNum;
+                if (prevOrg.p > 0 && prevOrg.p !== -Infinity) totalPatientsPrev += prevOrg.p;
+            }
+            if (mNum > 0 && mNum !== -Infinity) {
+                totalMembers += mNum;
+                if (prevOrg.m > 0 && prevOrg.m !== -Infinity) totalMembersPrev += prevOrg.m;
+            }
 
-            // Pass RAW numbers to buildTable, formatting happens there
-            // [Organisation, Location, Founded, Patients, Members]
+            // Calculate Deltas
+            const pDelta = (prevOrg.p !== -Infinity && pNum !== -Infinity) ? (pNum - prevOrg.p) : null;
+            const mDelta = (prevOrg.m !== -Infinity && mNum !== -Infinity) ? (mNum - prevOrg.m) : null;
+
+            // Pass an object combining the raw value and the delta
             displayRows.push([
-                rawOrgName, // Keep original CSV name for the table generation logic
+                rawOrgName,
                 config.location,
                 config.founded,
-                pNum === -Infinity ? 0 : pNum, // Store 0 or value for processing
-                mNum === -Infinity ? 0 : mNum
+                { val: pNum === -Infinity ? 0 : pNum, delta: pDelta },
+                { val: mNum === -Infinity ? 0 : mNum, delta: mDelta }
             ]);
         });
 
@@ -318,7 +351,11 @@ async function loadData() {
         buildTable(
             ['Organisation', 'Location', 'Founded', 'Patients', 'Members'],
             displayRows,
-            ['Total', '—', '—', formatNumber(totalPatients), formatNumber(totalMembers)]
+            [
+                'Total', '—', '—',
+                { val: totalPatients, delta: totalPatients - totalPatientsPrev },
+                { val: totalMembers, delta: totalMembers - totalMembersPrev }
+            ]
         );
 
     } catch (err) {
