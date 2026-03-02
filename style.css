@@ -73,7 +73,7 @@ main {
     /* Adds vertical scrollbar when needed */
     overflow-x: auto;
 
-    min-height: 450px;
+    min-height: 475px;
     /* Reserve space to prevent the jump */
     /* Center the "Loading..." text nicely in that space */
     display: flex;
@@ -152,8 +152,8 @@ th.sort-desc .th-content::after {
 
 /* Text Columns (Left Aligned, Arrow Right) */
 /* th:nth-child(-n+2) .th-content {
-    justify-content: flex-start;
-} */
+            justify-content: flex-start;
+        } */
 
 td:nth-child(-n+2) {
     text-align: left;
@@ -212,8 +212,43 @@ tfoot tr td {
     border-bottom: none;
 }
 
-tfoot tr td:first-child .org-cell {
+tfoot tr td:first-child {
+    text-align: right;
+}
+
+/* --- Fluctuation Numbers (Deltas) --- */
+.number-cell {
+    display: flex;
     justify-content: flex-end;
+    /* Main number stays right-aligned */
+    align-items: center;
+    gap: 8px;
+    /* Space between delta and main number */
+}
+
+.delta {
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.delta.pos {
+    color: #16a34a;
+    /* Green for increments */
+}
+
+.delta.neg {
+    color: #dc2626;
+    /* Red for decrements */
+}
+
+@media (prefers-color-scheme: dark) {
+    .delta.pos {
+        color: #4ade80;
+    }
+
+    .delta.neg {
+        color: #f87171;
+    }
 }
 
 /* --- 7. Methodology Grid --- */
